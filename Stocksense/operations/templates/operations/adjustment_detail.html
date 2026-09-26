@@ -1,0 +1,26 @@
+<h2>{{ adjustment.reference }} — {{ adjustment.get_status_display }}</h2>
+<p>Warehouse: {{ adjustment.warehouse }}</p>
+
+{% if messages %}
+  {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+{% endif %}
+
+<h3>Lines</h3>
+<ul>
+  {% for line in adjustment.lines.all %}
+    <li>{{ line.product.sku }} — counted: {{ line.counted_quantity }}</li>
+  {% endfor %}
+</ul>
+
+{% if adjustment.status == 'draft' %}
+  <form method="post">
+    {% csrf_token %}
+    {{ line_form.as_p }}
+    <button type="submit" name="add_line">Add Line</button>
+  </form>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" name="validate">Validate Adjustment</button>
+  </form>
+{% endif %}

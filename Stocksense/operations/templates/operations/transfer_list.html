@@ -1,0 +1,7 @@
+<h2>Internal Transfers</h2>
+<a href="{% url 'transfer_create' %}">+ New Transfer</a>
+<ul>
+  {% for t in transfers %}
+    <li><a href="{% url 'transfer_detail' t.pk %}">{{ t.reference }}</a> — {{ t.get_status_display }} — {{ t.source_warehouse }} → {{ t.dest_warehouse }}</li>
+  {% endfor %}
+</ul>

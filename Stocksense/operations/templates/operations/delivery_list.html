@@ -1,0 +1,7 @@
+<h2>Deliveries</h2>
+<a href="{% url 'delivery_create' %}">+ New Delivery</a>
+<ul>
+  {% for d in deliveries %}
+    <li><a href="{% url 'delivery_detail' d.pk %}">{{ d.reference }}</a> — {{ d.get_status_display }} — {{ d.warehouse }}</li>
+  {% endfor %}
+</ul>

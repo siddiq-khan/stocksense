@@ -1,0 +1,26 @@
+<h2>{{ transfer.reference }} — {{ transfer.get_status_display }}</h2>
+<p>{{ transfer.source_warehouse }} → {{ transfer.dest_warehouse }}</p>
+
+{% if messages %}
+  {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+{% endif %}
+
+<h3>Lines</h3>
+<ul>
+  {% for line in transfer.lines.all %}
+    <li>{{ line.product.sku }} — {{ line.quantity }}</li>
+  {% endfor %}
+</ul>
+
+{% if transfer.status == 'draft' %}
+  <form method="post">
+    {% csrf_token %}
+    {{ line_form.as_p }}
+    <button type="submit" name="add_line">Add Line</button>
+  </form>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" name="validate">Validate Transfer</button>
+  </form>
+{% endif %}

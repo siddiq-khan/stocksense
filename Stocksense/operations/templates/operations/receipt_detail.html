@@ -1,0 +1,26 @@
+<h2>{{ receipt.reference }} — {{ receipt.get_status_display }}</h2>
+<p>Warehouse: {{ receipt.warehouse }} | Supplier: {{ receipt.supplier_name }}</p>
+
+{% if messages %}
+  {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+{% endif %}
+
+<h3>Lines</h3>
+<ul>
+  {% for line in receipt.lines.all %}
+    <li>{{ line.product.sku }} — {{ line.quantity }}</li>
+  {% endfor %}
+</ul>
+
+{% if receipt.status == 'draft' %}
+  <form method="post">
+    {% csrf_token %}
+    {{ line_form.as_p }}
+    <button type="submit" name="add_line">Add Line</button>
+  </form>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" name="validate">Validate Receipt</button>
+  </form>
+{% endif %}

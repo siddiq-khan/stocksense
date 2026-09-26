@@ -1,0 +1,8 @@
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('operations/', include('operations.urls')),
+    path('', include('dashboard.urls')),  # dashboard at root
+]

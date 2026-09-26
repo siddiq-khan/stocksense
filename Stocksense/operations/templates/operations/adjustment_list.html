@@ -1,0 +1,7 @@
+<h2>Stock Adjustments</h2>
+<a href="{% url 'adjustment_create' %}">+ New Adjustment</a>
+<ul>
+  {% for a in adjustments %}
+    <li><a href="{% url 'adjustment_detail' a.pk %}">{{ a.reference }}</a> — {{ a.get_status_display }} — {{ a.warehouse }}</li>
+  {% endfor %}
+</ul>
