@@ -1,7 +1,25 @@
-<h2>Deliveries</h2>
-<a href="{% url 'delivery_create' %}">+ New Delivery</a>
-<ul>
-  {% for d in deliveries %}
-    <li><a href="{% url 'delivery_detail' d.pk %}">{{ d.reference }}</a> — {{ d.get_status_display }} — {{ d.warehouse }}</li>
-  {% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block title %}Deliveries — StockSense{% endblock %}
+{% block content %}
+<div class="view">
+  <div class="topbar">
+    <div><h2>Delivery Orders</h2><div class="sub">Outgoing stock to customers</div></div>
+    <a href="{% url 'delivery_create' %}"><button class="btn">+ New Delivery</button></a>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Reference</th><th>Customer</th><th>Warehouse</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for d in deliveries %}
+        <tr>
+          <td class="sku"><a href="{% url 'delivery_detail' d.pk %}">{{ d.reference }}</a></td>
+          <td>{{ d.customer_name }}</td>
+          <td>{{ d.warehouse }}</td>
+          <td><span class="status st-{{ d.status }}">{{ d.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

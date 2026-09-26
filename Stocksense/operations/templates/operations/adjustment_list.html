@@ -1,7 +1,24 @@
-<h2>Stock Adjustments</h2>
-<a href="{% url 'adjustment_create' %}">+ New Adjustment</a>
-<ul>
-  {% for a in adjustments %}
-    <li><a href="{% url 'adjustment_detail' a.pk %}">{{ a.reference }}</a> — {{ a.get_status_display }} — {{ a.warehouse }}</li>
-  {% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block title %}Adjustments — StockSense{% endblock %}
+{% block content %}
+<div class="view">
+  <div class="topbar">
+    <div><h2>Stock Adjustments</h2><div class="sub">Reconcile counted vs recorded stock</div></div>
+    <a href="{% url 'adjustment_create' %}"><button class="btn">+ New Adjustment</button></a>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Reference</th><th>Warehouse</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for a in adjustments %}
+        <tr>
+          <td class="sku"><a href="{% url 'adjustment_detail' a.pk %}">{{ a.reference }}</a></td>
+          <td>{{ a.warehouse }}</td>
+          <td><span class="status st-{{ a.status }}">{{ a.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

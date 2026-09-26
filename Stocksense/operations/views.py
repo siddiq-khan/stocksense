@@ -16,6 +16,7 @@ def receipt_list(request):
     return render(request, 'operations/receipt_list.html', {
         'receipts': receipts,
         'status_choices': Document.Status.choices,
+        'active_nav': 'receipts',
     })
 
 
@@ -76,6 +77,7 @@ def delivery_list(request):
     return render(request, 'operations/delivery_list.html', {
         'deliveries': deliveries,
         'status_choices': Document.Status.choices,
+        'active_nav': 'receipts',
     })
 
 
@@ -136,6 +138,7 @@ def transfer_list(request):
     return render(request, 'operations/transfer_list.html', {
         'transfers': transfers,
         'status_choices': Document.Status.choices,
+        'active_nav': 'receipts',
     })
 
 
@@ -196,6 +199,7 @@ def adjustment_list(request):
     return render(request, 'operations/adjustment_list.html', {
         'adjustments': adjustments,
         'status_choices': Document.Status.choices,
+        'active_nav': 'receipts',
     })
 
 
@@ -225,7 +229,6 @@ def adjustment_detail(request, pk):
             if line_form.is_valid():
                 line = line_form.save(commit=False)
                 line.document = adjustment
-                line.quantity = 0  # unused for adjustments, model field requires a value
                 line.save()
                 return redirect('adjustment_detail', pk=adjustment.pk)
         elif 'validate' in request.POST:
@@ -241,3 +244,27 @@ def adjustment_detail(request, pk):
         'adjustment': adjustment,
         'line_form': line_form,
     })
+
+#cancel document view
+
+from .services import validate_receipt, validate_delivery, validate_internal_transfer, validate_adjustment, cancel_document
+
+
+@login_required
+def document_cancel(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+    if request.method == 'POST':
+        try:
+            cancel_document(document)
+            messages.success(request, f"{document.reference} canceled.")
+        except ValueError as e:
+            messages.error(request, str(e))
+
+    # Redirect back to the correct detail page based on doc_type
+    redirect_map = {
+        'receipt': 'receipt_detail',
+        'delivery': 'delivery_detail',
+        'internal': 'transfer_detail',
+        'adjustment': 'adjustment_detail',
+    }
+    return redirect(redirect_map[document.doc_type], pk=document.pk)

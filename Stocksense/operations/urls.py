@@ -17,4 +17,5 @@ urlpatterns = [
     path('adjustments/', views.adjustment_list, name='adjustment_list'),
     path('adjustments/new/', views.adjustment_create, name='adjustment_create'),
     path('adjustments/<int:pk>/', views.adjustment_detail, name='adjustment_detail'),
+    path('documents/<int:pk>/cancel/', views.document_cancel, name='document_cancel'),
 ]

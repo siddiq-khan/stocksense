@@ -52,8 +52,7 @@ class Document(models.Model):
 class DocumentLine(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='lines')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.DecimalField(max_digits=12, decimal_places=2)
-
+    quantity = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     # Only used for Stock Adjustments — the physically counted quantity
     counted_quantity = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 

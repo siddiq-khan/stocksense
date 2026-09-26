@@ -1,7 +1,25 @@
-<h2>Receipts</h2>
-<a href="{% url 'receipt_create' %}">+ New Receipt</a>
-<ul>
-  {% for r in receipts %}
-    <li><a href="{% url 'receipt_detail' r.pk %}">{{ r.reference }}</a> — {{ r.get_status_display }} — {{ r.warehouse }}</li>
-  {% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block title %}Receipts — StockSense{% endblock %}
+{% block content %}
+<div class="view">
+  <div class="topbar">
+    <div><h2>Receipts</h2><div class="sub">Incoming stock from vendors</div></div>
+    <a href="{% url 'receipt_create' %}"><button class="btn">+ New Receipt</button></a>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Reference</th><th>Supplier</th><th>Warehouse</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for r in receipts %}
+        <tr>
+          <td class="sku"><a href="{% url 'receipt_detail' r.pk %}">{{ r.reference }}</a></td>
+          <td>{{ r.supplier_name }}</td>
+          <td>{{ r.warehouse }}</td>
+          <td><span class="status st-{{ r.status }}">{{ r.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

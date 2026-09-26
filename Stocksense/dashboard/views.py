@@ -59,4 +59,16 @@ def dashboard_view(request):
         'selected_status': status,
         'selected_warehouse': warehouse_id,
     }
+    import json
+    from django.utils import timezone
+
+    status_labels = [label for _, label in Document.Status.choices]
+    status_counts = [Document.objects.filter(status=value).count() for value, _ in Document.Status.choices]
+
+    context['today'] = timezone.now().strftime('%A, %B %d, %Y')
+    context['status_labels'] = json.dumps(status_labels)
+    context['status_counts'] = json.dumps(status_counts)
+    context['active_nav'] = 'dashboard'
+
     return render(request, 'dashboard/dashboard.html', context)
+

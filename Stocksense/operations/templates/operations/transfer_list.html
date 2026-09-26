@@ -1,7 +1,24 @@
-<h2>Internal Transfers</h2>
-<a href="{% url 'transfer_create' %}">+ New Transfer</a>
-<ul>
-  {% for t in transfers %}
-    <li><a href="{% url 'transfer_detail' t.pk %}">{{ t.reference }}</a> — {{ t.get_status_display }} — {{ t.source_warehouse }} → {{ t.dest_warehouse }}</li>
-  {% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block title %}Internal Transfers — StockSense{% endblock %}
+{% block content %}
+<div class="view">
+  <div class="topbar">
+    <div><h2>Internal Transfers</h2><div class="sub">Move stock between locations</div></div>
+    <a href="{% url 'transfer_create' %}"><button class="btn">+ New Transfer</button></a>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Reference</th><th>Route</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for t in transfers %}
+        <tr>
+          <td class="sku"><a href="{% url 'transfer_detail' t.pk %}">{{ t.reference }}</a></td>
+          <td>{{ t.source_warehouse }} &rarr; {{ t.dest_warehouse }}</td>
+          <td><span class="status st-{{ t.status }}">{{ t.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

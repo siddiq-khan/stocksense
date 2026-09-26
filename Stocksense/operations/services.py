@@ -61,3 +61,9 @@ def validate_adjustment(document):
     document.status = Document.Status.DONE
     document.validated_at = timezone.now()
     document.save()
+
+def cancel_document(document):
+    if document.status == Document.Status.DONE:
+        raise ValueError("Cannot cancel a document that has already been validated.")
+    document.status = Document.Status.CANCELED
+    document.save()
