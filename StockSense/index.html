@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StockSense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0d2b4e; --navy-2:#123a5e; --blue:#2f6fed; --blue-lt:#e8f0fe;
+  --bg:#eef3fb; --panel:#fff; --line:#dbe6f5; --ink:#0f1e33; --muted:#6d7d95;
+  --teal:#12b8a6; --amber:#f2a93b; --red:#e14f4f;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Inter',-apple-system,sans-serif; background:var(--bg); color:var(--ink); display:flex; min-height:100%;}
+h1,h2,h3{font-family:'Inter',sans-serif; font-weight:800; margin:0; letter-spacing:-.01em;}
+button{cursor:pointer; font-family:inherit;}
+::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:#c3d3ea; border-radius:4px;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+@keyframes pop{from{opacity:0; transform:scale(.94);} to{opacity:1; transform:scale(1);}}
+
+/* ---- LOGIN ---- */
+#auth{position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 20% 20%, #1a4a82, var(--navy) 60%);}
+.auth-wrap{width:min(860px,92vw); background:#fff; border-radius:22px; overflow:hidden; display:flex; box-shadow:0 40px 80px -20px rgba(0,0,0,.5); animation:pop .4s ease both;}
+.auth-side{flex:1.1; background:linear-gradient(160deg,var(--navy-2),var(--navy)); color:#fff; padding:42px; display:flex; flex-direction:column; justify-content:space-between; min-height:500px; position:relative; overflow:hidden;}
+.auth-side .ring{position:absolute; border:2px solid rgba(255,255,255,.08); border-radius:50%;}
+.ring.r1{width:260px; height:260px; right:-90px; top:-90px;} .ring.r2{width:160px; height:160px; left:-50px; bottom:-50px; border-color:rgba(47,111,237,.25);}
+.wordmark{font-size:1.7rem;} .wordmark em{font-style:normal; color:#5fa8ff;}
+.tagline{font-size:1.7rem; line-height:1.25; margin-top:22px; max-width:20ch; font-weight:700;}
+.tagline .hl{color:#12b8a6;}
+.stat-line{display:flex; gap:20px; margin-top:28px;}
+.stat-line div{border-left:3px solid #5fa8ff; padding-left:10px;}
+.stat-line b{display:block; font-size:1.25rem;} .stat-line span{font-size:.66rem; color:#a9c1de;}
+.auth-form{flex:1; padding:42px 40px; display:flex; flex-direction:column; justify-content:center;}
+.auth-form h2{font-size:1.35rem;} .auth-form .sub{color:var(--muted); font-size:.8rem; margin:4px 0 22px;}
+.field{margin-bottom:14px;} .field label{display:block; font-size:.7rem; color:var(--muted); margin-bottom:5px;}
+.field input{width:100%; padding:11px 13px; border:1.5px solid var(--line); background:var(--blue-lt); border-radius:10px; font-family:inherit; font-size:.88rem;}
+.field input:focus{outline:none; border-color:var(--blue); background:#fff;}
+.btn{background:var(--blue); color:#fff; border:none; padding:12px 20px; font-weight:700; font-size:.85rem; border-radius:10px; transition:transform .12s,box-shadow .15s;}
+.btn:hover{box-shadow:0 8px 18px -6px rgba(47,111,237,.6); transform:translateY(-1px);}
+.btn.full{width:100%;}
+.linkish{background:none; border:none; color:var(--blue); text-decoration:underline; font-size:.76rem; padding:0;}
+.authswitch{margin-top:14px; font-size:.76rem; color:var(--muted); text-align:center;}
+
+/* ---- APP SHELL ---- */
+#app{display:none; width:100%; min-height:100%;}
+#app.show{display:flex;}
+.sidebar{width:220px; flex-shrink:0; background:var(--navy); color:#dce8f8; display:flex; flex-direction:column; padding:20px 0;}
+.brand{padding:0 20px 18px; border-bottom:1px solid #1c3f66; display:flex; align-items:center; gap:9px;}
+.brand .dot{width:10px; height:10px; background:var(--teal); border-radius:4px; transform:rotate(45deg);}
+.brand h1{color:#fff; font-size:1.1rem;}
+.nav{flex:1; padding-top:12px; overflow-y:auto;}
+.navitem{display:flex; align-items:center; gap:11px; padding:11px 20px; font-size:.8rem; color:#9fb4cf; border-radius:0 20px 20px 0; margin-right:12px; transition:.15s;}
+.navitem:hover{background:#173a60; color:#fff;}
+.navitem.active{background:var(--blue); color:#fff;}
+.navicon{width:18px; text-align:center;}
+.badge-dot{margin-left:auto; background:var(--red); color:#fff; font-size:.6rem; padding:1px 6px; border-radius:8px;}
+.profile{padding:14px 20px; border-top:1px solid #1c3f66; font-size:.72rem; color:#8ea3c0;}
+.profile b{color:#fff; display:block; font-size:.84rem;}
+.profile .navitem{padding:8px 0 0; margin:0; border-radius:0;}
+.profile .navitem:hover{background:none; color:var(--teal);}
+
+.main{flex:1; overflow-y:auto; padding:28px 34px;}
+.view{animation:fadeUp .3s ease both;}
+.topbar{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px; flex-wrap:wrap; gap:10px;}
+.topbar h2{font-size:1.6rem;} .topbar .sub{color:var(--muted); font-size:.78rem;}
+
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:22px;}
+.kpi{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 18px; display:flex; gap:14px; align-items:center; transition:.2s;}
+.kpi:hover{transform:translateY(-3px); box-shadow:0 14px 28px -16px rgba(13,43,78,.25);}
+.kpi .icon{width:44px; height:44px; border-radius:50%; background:var(--blue-lt); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;}
+.kpi.warn .icon{background:#fdeee0; color:var(--amber);}
+.kpi .num{font-size:1.5rem; font-weight:800;}
+.kpi .lbl{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+
+.grid2{display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:20px;}
+.grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px;}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr;}}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px;}
+.card h3{font-size:.82rem; letter-spacing:.03em; color:var(--navy); text-transform:uppercase; margin-bottom:12px;}
+.card canvas{max-height:220px;}
+
+.filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.filters select,.filters input[type=text]{padding:9px 12px; border:1.5px solid var(--line); background:#fff; border-radius:10px; font-family:inherit; font-size:.78rem;}
+
+table{width:100%; border-collapse:collapse;}
+th,td{text-align:left; padding:10px 13px; font-size:.79rem; border-bottom:1px solid var(--line);}
+th{background:var(--blue-lt); color:var(--navy); font-weight:700; font-size:.68rem; text-transform:uppercase; letter-spacing:.03em;}
+.card table, .tablewrap{background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#f5f9ff;}
+.status{padding:3px 10px; font-size:.66rem; border-radius:20px; font-weight:700; display:inline-flex; align-items:center; gap:5px;}
+.status::before{content:""; width:6px; height:6px; border-radius:50%;}
+.st-draft{background:#eceef2; color:#5b5f6a;} .st-draft::before{background:#9498a3;}
+.st-waiting{background:#fdeee0; color:#b5670e;} .st-waiting::before{background:var(--amber);}
+.st-ready{background:#dff5f2; color:#0c8b7c;} .st-ready::before{background:var(--teal);}
+.st-done{background:#e1f5e1; color:#2c8a2c;} .st-done::before{background:#3aa53a;}
+.st-canceled{background:#fbe1e1; color:#b23a3a;} .st-canceled::before{background:var(--red);}
+.low{color:var(--red); font-weight:700;}
+.sku{font-family:'IBM Plex Mono',monospace; background:var(--blue-lt); color:var(--navy); padding:2px 7px; border-radius:6px; font-size:.74rem;}
+
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:18px; animation:fadeUp .25s ease both; border-top:4px solid var(--blue);}
+.panel h3{font-size:1rem; margin-bottom:14px;}
+.row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+.row > div{flex:1; min-width:150px;}
+.row label.small{display:block; font-size:.68rem; color:var(--muted); margin-bottom:4px;}
+.row input, .row select{width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:10px; font-family:inherit; font-size:.82rem; background:var(--blue-lt);}
+.row input:focus,.row select:focus{outline:none; border-color:var(--blue); background:#fff;}
+.actions{margin-top:10px; display:flex; gap:8px;}
+.btn.ghost{background:none; border:1.5px solid var(--navy); color:var(--navy);}
+.btn.ghost:hover{background:var(--navy); color:#fff; box-shadow:none;}
+.btn.sm{padding:8px 14px; font-size:.78rem; border-radius:9px;}
+.btn.teal{background:var(--teal);}
+
+#toast{position:fixed; bottom:24px; right:24px; z-index:100; display:flex; flex-direction:column; gap:8px;}
+.toast-item{background:var(--navy); color:#fff; padding:12px 18px; border-radius:10px; font-size:.78rem; border-left:4px solid var(--teal); box-shadow:0 12px 30px -8px rgba(0,0,0,.4); animation:fadeUp .25s ease both;}
+
+@media (max-width:760px){
+  .sidebar{width:60px;} .brand h1,.navitem span.lbl,.profile{display:none;}
+  .navitem{justify-content:center; margin-right:0; border-radius:0;}
+  .main{padding:18px 14px;} .auth-side{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="auth">
+  <div class="auth-wrap">
+    <div class="auth-side">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <div><div class="wordmark">Stock<em>Sense</em></div>
+        <div class="tagline">Real-time visibility across <span class="hl">every warehouse.</span></div>
+        <div class="stat-line"><div><b>1,037</b><span>UNITS TRACKED</span></div><div><b>6</b><span>LOCATIONS</span></div><div><b>99.4%</b><span>PICK ACCURACY</span></div></div>
+      </div>
+    </div>
+    <div class="auth-form">
+      <div id="loginForm">
+        <h2>Welcome back</h2><div class="sub">Sign in to your inventory dashboard</div>
+        <div class="field"><label>Email</label><input id="loginEmail" type="text" value="manager@stocksense.io"></div>
+        <div class="field"><label>Password</label><input id="loginPass" type="password" value="warehouse123"></div>
+        <button class="btn full" onclick="doLogin()">Log in →</button>
+        <div class="authswitch">Forgot password? <button class="linkish" onclick="toggleOtp(true)">Reset via OTP</button></div>
+      </div>
+      <div id="otpForm" style="display:none;">
+        <h2>Reset password</h2><div class="sub">We'll send a one-time code to your email</div>
+        <div class="field"><label>Registered email</label><input id="otpEmail" type="text" placeholder="you@company.com"></div>
+        <div class="field"><label>OTP code</label><input id="otpCode" type="text" placeholder="Try 1234"></div>
+        <button class="btn full" onclick="verifyOtp()">Verify &amp; reset</button>
+        <div class="authswitch"><button class="linkish" onclick="toggleOtp(false)">Back to login</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="sidebar">
+    <div class="brand"><div class="dot"></div><h1>StockSense</h1></div>
+    <div class="nav" id="navList"></div>
+    <div class="profile"><b>Asha Rao</b>Inventory Manager
+      <div class="navitem" onclick="toast('Profile settings coming soon')"><span class="navicon">&#9881;</span><span class="lbl">My Profile</span></div>
+      <div class="navitem" onclick="doLogout()"><span class="navicon">&#8618;</span><span class="lbl">Logout</span></div>
+    </div>
+  </div>
+  <div class="main" id="mainArea"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+let products=[
+ {sku:'STL-001',name:'Steel Rods',cat:'Raw Material',uom:'kg',stock:127,loc:'Main Store',reorder:50},
+ {sku:'CHR-014',name:'Office Chairs',cat:'Finished Goods',uom:'unit',stock:6,loc:'Warehouse 1',reorder:10},
+ {sku:'FRM-022',name:'Steel Frames',cat:'Finished Goods',uom:'unit',stock:0,loc:'Production Floor',reorder:5},
+ {sku:'BLT-101',name:'Bolts M8',cat:'Component',uom:'pcs',stock:842,loc:'Rack A',reorder:200},
+ {sku:'PNT-007',name:'Grey Primer Paint',cat:'Consumable',uom:'l',stock:18,loc:'Warehouse 2',reorder:15},
+];
+let docs={
+ receipts:[{id:'REC-1042',partner:'Bansal Steel Co.',items:'Steel Rods x50',status:'Ready',loc:'Main Store',date:'2026-09-24'},
+  {id:'REC-1041',partner:'ProBolt Traders',items:'Bolts M8 x500',status:'Done',loc:'Rack A',date:'2026-09-21'},
+  {id:'REC-1040',partner:'CoatWorks Supply',items:'Primer Paint x20',status:'Waiting',loc:'Warehouse 2',date:'2026-09-19'}],
+ delivery:[{id:'DEL-2201',partner:'Nova Interiors',items:'Office Chairs x10',status:'Waiting',loc:'Warehouse 1',date:'2026-09-25'},
+  {id:'DEL-2200',partner:'BuildRight Ltd.',items:'Steel Frames x20',status:'Done',loc:'Production Floor',date:'2026-09-20'},
+  {id:'DEL-2199',partner:'Metro Fabricators',items:'Steel Rods x15',status:'Draft',loc:'Main Store',date:'2026-09-26'}],
+ internal:[{id:'INT-330',partner:'Main Store → Production Rack',items:'Steel Rods x100',status:'Done',loc:'—',date:'2026-09-22'},
+  {id:'INT-331',partner:'Warehouse 1 → Warehouse 2',items:'Office Chairs x4',status:'Ready',loc:'—',date:'2026-09-25'}],
+ adjustments:[{id:'ADJ-058',partner:'Damaged goods write-off',items:'Steel Rods -3kg',status:'Done',loc:'Production Rack',date:'2026-09-23'}]
+};
+let history=[
+ {date:'2026-09-26 09:12',product:'Steel Frames',change:-20,ref:'DEL-2200',loc:'Production Floor'},
+ {date:'2026-09-23 15:40',product:'Steel Rods',change:-3,ref:'ADJ-058',loc:'Production Rack'},
+ {date:'2026-09-22 11:05',product:'Steel Rods',change:0,ref:'INT-330',loc:'Main Store → Production Rack'},
+ {date:'2026-09-21 08:50',product:'Bolts M8',change:500,ref:'REC-1041',loc:'Rack A'},
+];
+let warehouses=['Main Store','Warehouse 1','Warehouse 2','Production Floor','Production Rack','Rack A'];
+let dashWh='';
+const nav=[
+ {id:'dashboard',icon:'&#9632;',label:'Dashboard'},{id:'products',icon:'&#128230;',label:'Products'},
+ {id:'receipts',icon:'&#8600;',label:'Receipts'},{id:'delivery',icon:'&#8599;',label:'Delivery Orders'},
+ {id:'internal',icon:'&#8646;',label:'Internal Transfers'},{id:'adjustments',icon:'&#9998;',label:'Adjustments'},
+ {id:'history',icon:'&#128220;',label:'Move History'},{id:'settings',icon:'&#9881;',label:'Settings'}];
+
+function toast(msg){const t=document.createElement('div');t.className='toast-item';t.textContent=msg;
+ document.getElementById('toast').appendChild(t);
+ setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},2600);}
+function toggleOtp(s){document.getElementById('loginForm').style.display=s?'none':'block';document.getElementById('otpForm').style.display=s?'block':'none';}
+function doLogin(){document.getElementById('auth').style.display='none';document.getElementById('app').classList.add('show');
+ if(!location.hash) location.hash='#/dashboard'; else routeFromHash();
+ setTimeout(()=>toast('Welcome back, Asha — synced 6 warehouses'),400);}
+function verifyOtp(){const c=document.getElementById('otpCode').value; if(c==='1234'){toast('Password reset. Check your email.');toggleOtp(false);} else toast('Incorrect code — try 1234');}
+function doLogout(){document.getElementById('app').classList.remove('show');document.getElementById('auth').style.display='flex';}
+
+/* ---- ROUTING ---- */
+window.addEventListener('hashchange', routeFromHash);
+function goTo(view){ location.hash = '#/'+view; }
+function routeFromHash(){
+  const view=(location.hash.replace('#/','')||'dashboard');
+  buildNav(view);
+  const el=document.getElementById('mainArea');
+  if(view==='dashboard') el.innerHTML=renderDashboard();
+  else if(view==='products') el.innerHTML=renderProducts();
+  else if(view==='history') el.innerHTML=renderHistory();
+  else if(view==='settings') el.innerHTML=renderSettings();
+  else if(docs[view]) el.innerHTML=renderDocs(view);
+  else el.innerHTML=renderDashboard();
+  if(view==='dashboard') requestAnimationFrame(drawCharts);
+}
+function buildNav(active){document.getElementById('navList').innerHTML=nav.map(n=>{
+  let b=(n.id==='receipts'||n.id==='delivery')?countBadge(n.id):'';
+  return `<div class="navitem${n.id===active?' active':''}" onclick="goTo('${n.id}')"><span class="navicon">${n.icon}</span><span class="lbl">${n.label}</span>${b}</div>`;
+}).join('');}
+function countBadge(v){const n=docs[v].filter(d=>d.status!=='Done'&&d.status!=='Canceled').length; return n?`<span class="badge-dot">${n}</span>`:'';}
+function statusClass(s){return 'st-'+s.toLowerCase();}
+function render(view){goTo(view);} // legacy alias
+
+/* ---- DASHBOARD ---- */
+function renderDashboard(){
+  const total=products.reduce((a,p)=>a+p.stock,0);
+  const low=products.filter(p=>p.stock<=p.reorder&&p.stock>0).length;
+  const out=products.filter(p=>p.stock===0).length;
+  const pendR=docs.receipts.filter(d=>d.status!=='Done'&&d.status!=='Canceled').length;
+  let rows=[]; Object.entries(docs).forEach(([t,l])=>l.forEach(d=>rows.push({...d,type:t})));
+  rows.sort((a,b)=>b.date.localeCompare(a.date));
+  return `<div class="view">
+  <div class="topbar"><div><h2>${dashWh?('Viewing '+dashWh):'Sales Performance'} Dashboard</h2><div class="sub">${new Date().toDateString()}</div></div>
+    <select onchange="setDashWh(this.value)"><option value="">All warehouses</option>${warehouses.map(w=>`<option${w===dashWh?' selected':''}>${w}</option>`).join('')}</select></div>
+  <div class="kpis">
+    <div class="kpi"><div class="icon">&#128230;</div><div><div class="num">${total}</div><div class="lbl">Units In Stock</div></div></div>
+    <div class="kpi ${low?'warn':''}"><div class="icon">&#9888;</div><div><div class="num">${low}</div><div class="lbl">Low Stock Items</div></div></div>
+    <div class="kpi ${out?'warn':''}"><div class="icon">&#10060;</div><div><div class="num">${out}</div><div class="lbl">Out Of Stock</div></div></div>
+    <div class="kpi"><div class="icon">&#128229;</div><div><div class="num">${pendR}</div><div class="lbl">Pending Receipts</div></div></div>
+  </div>
+  ${dashWh ? renderWarehouseDetail(dashWh) : `
+  <div class="grid2">
+    <div class="card"><h3>Stock Movement (Last 6 Weeks)</h3><canvas id="chMove"></canvas></div>
+    <div class="card"><h3>Documents By Status</h3><canvas id="chStatus"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>Top Products By Stock</h3><canvas id="chTop"></canvas></div>
+    <div class="card"><h3>Recent Activity</h3>
+      <div class="tablewrap" style="border:none;"><table><tbody>${rows.slice(0,5).map(r=>`<tr><td class="sku">${r.id}</td><td>${r.partner}</td><td><span class="status ${statusClass(r.status)}">${r.status}</span></td></tr>`).join('')}</tbody></table></div>
+    </div>
+  </div>`}
+  </div>`;
+}
+function setDashWh(v){dashWh=v; document.getElementById('mainArea').innerHTML=renderDashboard(); if(!v) requestAnimationFrame(drawCharts);}
+function renderWarehouseDetail(wh){
+  const items=products.filter(p=>p.loc===wh);
+  if(!items.length) return `<div class="card">No products stocked at ${wh}.</div>`;
+  const totalHere=items.reduce((a,p)=>a+p.stock,0), lowHere=items.filter(p=>p.stock<=p.reorder).length;
+  return `<div class="card">
+    <h3>${wh} — Item-Level Stock</h3>
+    <div class="row" style="margin-bottom:14px;">
+      <div><span class="small">Items</span><div style="font-size:1.3rem;font-weight:800;">${items.length}</div></div>
+      <div><span class="small">Total units</span><div style="font-size:1.3rem;font-weight:800;">${totalHere}</div></div>
+      <div><span class="small">Below reorder</span><div style="font-size:1.3rem;font-weight:800;color:${lowHere?'var(--red)':'inherit'};">${lowHere}</div></div>
+    </div>
+    <table><thead><tr><th>SKU</th><th>Product</th><th>Stock</th><th>Reorder</th><th>Status</th></tr></thead>
+    <tbody>${items.map(p=>{const lf=p.stock<=p.reorder;
+      const st=p.stock===0?'<span class="status st-canceled">Out</span>':lf?'<span class="status st-waiting">Low</span>':'<span class="status st-done">Healthy</span>';
+      return `<tr><td class="sku">${p.sku}</td><td>${p.name}</td><td class="${lf?'low':''}">${p.stock}</td><td>${p.reorder}</td><td>${st}</td></tr>`;}).join('')}</tbody></table>
+  </div>`;
+}
+let chartRefs=[];
+function drawCharts(){
+  chartRefs.forEach(c=>c.destroy()); chartRefs=[];
+  const move=document.getElementById('chMove'); if(!move) return;
+  const gridCol='#dbe6f5';
+  chartRefs.push(new Chart(move,{type:'bar',data:{labels:['W1','W2','W3','W4','W5','W6'],
+    datasets:[{label:'Inbound',data:[80,120,60,140,95,110],backgroundColor:'#2f6fed',borderRadius:6},
+              {label:'Outbound',data:[40,70,50,90,60,85],backgroundColor:'#12b8a6',borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},scales:{x:{grid:{display:false}},y:{grid:{color:gridCol}}}}}));
+  const allDocs=[...docs.receipts,...docs.delivery,...docs.internal,...docs.adjustments];
+  const statuses=['Draft','Waiting','Ready','Done','Canceled'];
+  const counts=statuses.map(s=>allDocs.filter(d=>d.status===s).length);
+  chartRefs.push(new Chart(document.getElementById('chStatus'),{type:'doughnut',
+    data:{labels:statuses,datasets:[{data:counts,backgroundColor:['#9498a3','#f2a93b','#12b8a6','#3aa53a','#e14f4f'],borderWidth:0}]},
+    options:{responsive:true,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}}));
+  const top=[...products].sort((a,b)=>b.stock-a.stock);
+  chartRefs.push(new Chart(document.getElementById('chTop'),{type:'bar',
+    data:{labels:top.map(p=>p.name),datasets:[{data:top.map(p=>p.stock),backgroundColor:'#2f6fed',borderRadius:6}]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridCol}},y:{grid:{display:false}}}}}));
+}
+
+/* ---- PRODUCTS ---- */
+function renderProducts(){return `<div class="view">
+  <div class="topbar"><div><h2>Products</h2><div class="sub">${products.length} SKUs across ${warehouses.length} locations</div></div>
+    <button class="btn" onclick="openNewProduct()">+ New product</button></div>
+  <div class="filters"><input type="text" placeholder="Search SKU or name..." oninput="filterProducts(this.value)">
+    <select><option>All categories</option>${[...new Set(products.map(p=>p.cat))].map(c=>`<option>${c}</option>`).join('')}</select></div>
+  <div id="prodPanel"></div>
+  <div class="tablewrap"><table><thead><tr><th>SKU</th><th>Name</th><th>Category</th><th>UoM</th><th>Location</th><th>Stock</th><th>Reorder</th></tr></thead>
+  <tbody id="prodBody">${products.map(productRow).join('')}</tbody></table></div>
+  </div>`;}
+function productRow(p){const lf=p.stock<=p.reorder;
+  return `<tr><td class="sku">${p.sku}</td><td>${p.name}</td><td>${p.cat}</td><td>${p.uom}</td><td>${p.loc}</td><td class="${lf?'low':''}">${p.stock}${lf?' ⚠':''}</td><td>${p.reorder}</td></tr>`;}
+function filterProducts(q){q=q.toLowerCase();document.getElementById('prodBody').innerHTML=products.filter(p=>p.sku.toLowerCase().includes(q)||p.name.toLowerCase().includes(q)).map(productRow).join('');}
+function openNewProduct(){document.getElementById('prodPanel').innerHTML=`<div class="panel"><h3>New product</h3>
+  <div class="row"><div><label class="small">Name</label><input id="npName" type="text"></div><div><label class="small">SKU / Code</label><input id="npSku" type="text"></div></div>
+  <div class="row"><div><label class="small">Category</label><input id="npCat" type="text"></div><div><label class="small">Unit of measure</label><input id="npUom" type="text"></div><div><label class="small">Initial stock</label><input id="npStock" type="number" value="0"></div></div>
+  <div class="actions"><button class="btn teal sm" onclick="saveProduct()">Save product</button><button class="btn ghost sm" onclick="goTo('products')">Cancel</button></div></div>`;}
+function saveProduct(){const name=document.getElementById('npName').value.trim(),sku=document.getElementById('npSku').value.trim();
+  if(!name||!sku){toast('Name and SKU are required');return;}
+  products.push({sku,name,cat:document.getElementById('npCat').value||'Uncategorized',uom:document.getElementById('npUom').value||'unit',stock:+document.getElementById('npStock').value||0,loc:'Main Store',reorder:10});
+  routeFromHash(); toast(`${name} added to catalog`);}
+
+/* ---- DOC VIEWS ---- */
+function renderDocs(view){
+  const titles={receipts:['Receipts','Incoming stock from vendors'],delivery:['Delivery Orders','Outgoing stock to customers'],internal:['Internal Transfers','Move stock between locations'],adjustments:['Stock Adjustments','Reconcile counted vs recorded stock']};
+  const [title,sub]=titles[view]; const list=docs[view]; const colLabel=view==='internal'?'Route':(view==='adjustments'?'Reason':'Partner');
+  return `<div class="view"><div class="topbar"><div><h2>${title}</h2><div class="sub">${sub}</div></div><button class="btn" onclick="openNewDoc('${view}')">+ New</button></div>
+  <div id="docPanel"></div>
+  <div class="tablewrap"><table><thead><tr><th>Reference</th><th>${colLabel}</th><th>Items</th><th>Location</th><th>Status</th><th>Date</th><th></th></tr></thead>
+  <tbody id="docBody">${list.map(d=>docRow(d,view)).join('')}</tbody></table></div></div>`;
+}
+function docRow(d,view){const next={Draft:'Waiting',Waiting:'Ready',Ready:'Done'}[d.status];
+  return `<tr><td class="sku">${d.id}</td><td>${d.partner}</td><td>${d.items}</td><td>${d.loc}</td><td><span class="status ${statusClass(d.status)}">${d.status}</span></td><td>${d.date}</td>
+  <td>${next?`<button class="btn ghost sm" onclick="advanceDoc('${view}','${d.id}')">Mark ${next}</button>`:''}</td></tr>`;}
+function advanceDoc(view,id){const d=docs[view].find(x=>x.id===id); const flow={Draft:'Waiting',Waiting:'Ready',Ready:'Done'};
+  if(flow[d.status]){d.status=flow[d.status]; if(d.status==='Done') history.unshift({date:new Date().toISOString().slice(0,16).replace('T',' '),product:d.items,change:view==='delivery'?'−':'+',ref:d.id,loc:d.loc}); toast(`${d.id} marked ${d.status}`);}
+  routeFromHash();}
+function openNewDoc(view){const labels={receipts:'Supplier',delivery:'Customer',internal:'Route (From → To)',adjustments:'Reason'};
+  document.getElementById('docPanel').innerHTML=`<div class="panel"><h3>New ${view==='internal'?'transfer':view.slice(0,-1)}</h3>
+  <div class="row"><div><label class="small">${labels[view]}</label><input id="ndPartner" type="text"></div>
+  <div><label class="small">Product & quantity</label><input id="ndItems" type="text" placeholder="e.g. Steel Rods x50"></div>
+  <div><label class="small">Location</label><select id="ndLoc">${warehouses.map(w=>`<option>${w}</option>`).join('')}</select></div></div>
+  <div class="actions"><button class="btn teal sm" onclick="saveDoc('${view}')">Create draft</button><button class="btn ghost sm" onclick="goTo('${view}')">Cancel</button></div></div>`;}
+function saveDoc(view){const partner=document.getElementById('ndPartner').value.trim(),items=document.getElementById('ndItems').value.trim();
+  if(!partner||!items){toast('Please fill in all fields');return;}
+  const prefix={receipts:'REC',delivery:'DEL',internal:'INT',adjustments:'ADJ'}[view]; const num=1000+docs[view].length+Math.floor(Math.random()*90);
+  docs[view].unshift({id:`${prefix}-${num}`,partner,items,status:'Draft',loc:document.getElementById('ndLoc').value,date:new Date().toISOString().slice(0,10)});
+  routeFromHash(); toast(`${prefix}-${num} created as draft`);}
+
+function renderHistory(){return `<div class="view"><div class="topbar"><div><h2>Move History</h2><div class="sub">Full stock ledger</div></div></div>
+  <div class="tablewrap"><table><thead><tr><th>Date</th><th>Product</th><th>Change</th><th>Reference</th><th>Location</th></tr></thead>
+  <tbody>${history.map(h=>`<tr><td>${h.date}</td><td>${h.product}</td><td class="${typeof h.change==='number'&&h.change<0?'low':''}">${typeof h.change==='number'?(h.change>0?'+':'')+h.change:h.change}</td><td class="sku">${h.ref}</td><td>${h.loc}</td></tr>`).join('')}</tbody></table></div></div>`;}
+function renderSettings(){return `<div class="view"><div class="topbar"><div><h2>Settings</h2><div class="sub">Warehouses & locations</div></div></div>
+  <div class="card"><h3>Warehouses</h3><table><thead><tr><th>Name</th><th>Products stored</th></tr></thead>
+  <tbody>${warehouses.map(w=>`<tr><td>${w}</td><td>${products.filter(p=>p.loc===w).length}</td></tr>`).join('')}</tbody></table>
+  <div class="actions"><input id="newWh" type="text" placeholder="New warehouse name" style="padding:9px;border:1.5px solid var(--line);border-radius:10px;flex:1;font-family:inherit">
+  <button class="btn teal sm" onclick="addWarehouse()">Add warehouse</button></div></div></div>`;}
+function addWarehouse(){const v=document.getElementById('newWh').value.trim(); if(v){warehouses.push(v); routeFromHash(); toast(`${v} added`);}}
+
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body>
+</html>
